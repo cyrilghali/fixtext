@@ -1,0 +1,11 @@
+#!/bin/bash
+# Fix spelling and grammar with claude -p on the subscription: text on stdin, corrected text on stdout.
+# Fallback used by FixText.app (~/.local/src/fix-text) when the on-device Apple Intelligence model is unavailable.
+set -uo pipefail
+export PATH="$HOME/.local/bin:/opt/homebrew/bin:$PATH"
+
+PROMPT='Fix spelling, grammar and punctuation of the text below. Keep its language, tone, meaning, line breaks and formatting; leave @mentions, :emoji:, URLs and code untouched. Output only the corrected text, nothing else.'
+
+cd "$HOME" && claude -p --model haiku \
+  --strict-mcp-config --mcp-config '{"mcpServers":{}}' --tools "" --setting-sources "" \
+  "$PROMPT"
