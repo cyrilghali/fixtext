@@ -41,7 +41,7 @@
 				<string>public.utf8-plain-text</string>
 			</array>
 			<key>NSTimeout</key>
-			<string>30000</string>
+			<string>120000</string>
 		</dict>
 	</array>
 </dict>

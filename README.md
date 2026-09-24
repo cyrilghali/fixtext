@@ -1,6 +1,6 @@
 # FixText
 
-Fix the spelling and grammar of whatever text is selected, in any macOS app, in place. Press ⌃F and the selection is replaced by its corrected version.
+Fix the spelling, grammar and awkward phrasing of whatever text is selected, in any macOS app, in place. Press ⌃F and the selection is replaced by its corrected version.
 
 It is one Swift file, no dependencies, no Xcode project. The app lives in the menu bar and does nothing until you ask.
 
@@ -17,16 +17,17 @@ The hotkey path copies the selection, corrects it, and pastes it back. That need
 
 ## Which engine answers?
 
-The first available one wins, so a missing key or an offline machine degrades instead of failing:
+FixText tries Codex first, then Claude. If neither answers, it tries the local Ollama model:
 
 | Engine | Latency | Needs |
 |---|---|---|
+| Codex CLI, GPT-6 Luna | varies | Codex installed and signed in |
 | Anthropic API, Claude Haiku | ~1 s | An API key in the Keychain |
 | Resident `claude -p` session | ~2.5 s | Claude Code on a subscription |
 | Ollama, `gemma3:4b` | ~3 s | Ollama running locally, works offline |
 | `fix-text` CLI, one-shot `claude -p` | slow | Claude Code |
 
-The resident session keeps one process alive so boot and prompt cache are paid once, and recycles it every 30 fixes for a clean context.
+Codex runs with read-only access and a 20-second limit. If it fails or times out, FixText moves to Claude. The resident Claude session keeps one process alive so boot and prompt cache are paid once, and recycles it every 30 fixes for a clean context.
 
 ## How do I install it?
 
@@ -50,7 +51,7 @@ Grant Accessibility to FixText in System Settings, Privacy & Security, and ⌃F 
 
 ## What does it refuse to change?
 
-The prompt corrects spelling, grammar, accents and punctuation, and nothing else: no translation, no rephrasing, no change of register. Mentions, emoji shortcodes, URLs and code pass through untouched. Texting shorthand is expanded into full words.
+The prompt corrects spelling, grammar, accents and punctuation in English, French and other languages. It also smooths awkward phrasing, including non-native writing, while preserving meaning, tone and register. Mentions, emoji shortcodes, URLs and code pass through untouched. Texting shorthand is expanded into full words.
 
 One thing is stripped before the model ever sees the text: the quote gutter a terminal drags along when you copy from it, the block glyph that prefixes every selected line.
 
