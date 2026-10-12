@@ -127,7 +127,7 @@ func fixWithAPI(_ text: String) -> String? {
     guard let apiKey else { return nil }
     return post("https://api.anthropic.com/v1/messages",
                 headers: ["x-api-key": apiKey, "anthropic-version": "2023-06-01"],
-                body: ["model": "claude-haiku-4-5-20251001", "max_tokens": 2048, "system": prompt,
+                body: ["model": "claude-haiku-5-5", "max_tokens": 2048, "system": prompt,
                        "messages": [["role": "user", "content": text]]])
         .flatMap { ($0["content"] as? [[String: Any]])?.first?["text"] as? String }
 }
