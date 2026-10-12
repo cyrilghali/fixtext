@@ -17,17 +17,16 @@ The hotkey path copies the selection, corrects it, and pastes it back. That need
 
 ## Which engine answers?
 
-FixText tries Codex first, then Claude. If neither answers, it tries the local Ollama model:
+FixText tries Claude Haiku first. If it does not answer, it tries the local Ollama model:
 
 | Engine | Latency | Needs |
 |---|---|---|
-| Codex CLI, GPT-6 Luna | varies | Codex installed and signed in |
 | Anthropic API, Claude Haiku | ~1 s | An API key in the Keychain |
 | Resident `claude -p` session | ~2.5 s | Claude Code on a subscription |
 | Ollama, `gemma3:4b` | ~3 s | Ollama running locally, works offline |
 | `fix-text` CLI, one-shot `claude -p` | slow | Claude Code |
 
-Codex runs with read-only access and a 20-second limit. If it fails or times out, FixText moves to Claude. The resident Claude session keeps one process alive so boot and prompt cache are paid once, and recycles it every 30 fixes for a clean context.
+The resident Claude session keeps one process alive so boot and prompt cache are paid once, and recycles it every 30 fixes for a clean context.
 
 ## How do I install it?
 
