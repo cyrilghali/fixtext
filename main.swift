@@ -1,9 +1,8 @@
 // FixText: a background app that fixes the selected text in place, in any app.
 //   ⌃F (global hotkey) → ⌘C → fix → ⌘V. Works in Electron apps (Slack) that ignore macOS Services.
 //   Right-click → Services → Fix Text in Cocoa apps (macOS hands over the selection, no keystrokes).
-// Fix engines, first available wins: Anthropic API, a resident `claude -p` session,
+// Fix engines, first available wins: a resident `claude -p` session on the subscription,
 // Ollama at localhost:11434 (offline), ~/.local/bin/fix-text (one-shot claude -p).
-// Store the API key once: security add-generic-password -s fix-text-anthropic -a "$USER" -w "<key>"
 // Build: see build.sh next to this file.
 import AppKit
 import Carbon
@@ -34,8 +33,6 @@ let prompt = """
     Output: On fait un point après la réu ?
     """
 
-let apiKey = shell("/usr/bin/security", ["find-generic-password", "-s", "fix-text-anthropic", "-w"], stdin: nil)
-
 // A selection copied out of a terminal pane drags its quote gutter along: Claude Code prefixes every selected line with ▎.
 func stripGutter(_ text: String) -> String {
     text.split(separator: "\n", omittingEmptySubsequences: false).map { line -> Substring in
@@ -48,7 +45,7 @@ func stripGutter(_ text: String) -> String {
 
 func fix(_ raw: String) -> String {
     let text = stripGutter(raw)
-    return fixWithAPI(text) ?? claudeSession.fix(text) ?? fixWithOllama(text)
+    return claudeSession.fix(text) ?? fixWithOllama(text)
         ?? shell("/bin/bash", ["-c", "\"$HOME/.local/bin/fix-text\""], stdin: text) ?? text
 }
 
@@ -117,26 +114,16 @@ final class ClaudeSession {
 let claudeSession = ClaudeSession()
 
 func fixWithOllama(_ text: String) -> String? {
-    post("http://localhost:11434/api/chat", headers: [:], body: [
+    post("http://localhost:11434/api/chat", body: [
         "model": "gemma3:4b", "stream": false, "keep_alive": "24h", "options": ["temperature": 0],
         "messages": [["role": "system", "content": prompt], ["role": "user", "content": text]],
     ]).flatMap { ($0["message"] as? [String: Any])?["content"] as? String }
 }
 
-func fixWithAPI(_ text: String) -> String? {
-    guard let apiKey else { return nil }
-    return post("https://api.anthropic.com/v1/messages",
-                headers: ["x-api-key": apiKey, "anthropic-version": "2023-06-01"],
-                body: ["model": "claude-haiku-5-5", "max_tokens": 2048, "system": prompt,
-                       "messages": [["role": "user", "content": text]]])
-        .flatMap { ($0["content"] as? [[String: Any]])?.first?["text"] as? String }
-}
-
-func post(_ url: String, headers: [String: String], body: [String: Any]) -> [String: Any]? {
+func post(_ url: String, body: [String: Any]) -> [String: Any]? {
     var request = URLRequest(url: URL(string: url)!, timeoutInterval: 30)
     request.httpMethod = "POST"
     request.setValue("application/json", forHTTPHeaderField: "content-type")
-    headers.forEach { request.setValue($1, forHTTPHeaderField: $0) }
     request.httpBody = try? JSONSerialization.data(withJSONObject: body)
     var result: [String: Any]?
     let done = DispatchSemaphore(value: 0)
@@ -227,7 +214,7 @@ final class StatusMenu: NSObject, NSMenuDelegate {
 
     func menuNeedsUpdate(_ menu: NSMenu) {
         let ollamaUp = (try? Data(contentsOf: URL(string: "http://localhost:11434/api/version")!)) != nil
-        menu.items[2].title = "Engine: " + (apiKey != nil ? "Claude Haiku, API" : claudeSession.isReady ? "Claude Haiku, subscription"
+        menu.items[2].title = "Engine: " + (claudeSession.isReady ? "Claude Haiku, subscription"
                                             : ollamaUp ? "Gemma 3, local" : "Claude Haiku, CLI")
         let trusted = AXIsProcessTrusted()
         menu.items[3].title = trusted ? "Accessibility: granted" : "Accessibility: not granted, click to open settings"

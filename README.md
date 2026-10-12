@@ -21,8 +21,7 @@ FixText tries Claude Haiku first. If it does not answer, it tries the local Olla
 
 | Engine | Latency | Needs |
 |---|---|---|
-| Anthropic API, Claude Haiku | ~1 s | An API key in the Keychain |
-| Resident `claude -p` session | ~2.5 s | Claude Code on a subscription |
+| Resident `claude -p` session, Claude Haiku | ~1 s | Claude Code on a subscription |
 | Ollama, `gemma3:4b` | ~3 s | Ollama running locally, works offline |
 | `fix-text` CLI, one-shot `claude -p` | slow | Claude Code |
 
@@ -36,12 +35,6 @@ cd fixtext
 ./make-cert.sh   # once: a self-signed certificate, so Accessibility survives rebuilds
 ./build.sh       # builds ~/Applications/FixText.app and registers the service
 open ~/Applications/FixText.app
-```
-
-For the API engine, store a key once:
-
-```sh
-security add-generic-password -s fix-text-anthropic -a "$USER" -w "<key>"
 ```
 
 For the CLI fallback, `cp fix-text ~/.local/bin/fix-text`.
